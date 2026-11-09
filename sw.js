@@ -1,0 +1,5 @@
+const CACHE='suivi-turf-v4-pwa-v4-17';
+const FILES=['./','./index.html','./app.js','./manifest.webmanifest','./icon.svg','./Suivi_Turf_Turbo_V4_Noyau_Donnees.js','./Suivi_Turf_Turbo_V4_Extraction_PDF.js','./Suivi_Turf_Turbo_V4_Lecteur_PDF.js','./Suivi_Turf_Turbo_V4_Importateur.js','./Suivi_Turf_Turbo_V4_Importateur_Texte.js','./Suivi_Turf_Turbo_V4_Moteur_Statistique.js','./Suivi_Turf_Turbo_V4_Moteur_Aptitude.js','./Suivi_Turf_Turbo_V4_Moteur_7_Experts.js','./Suivi_Turf_Turbo_V4_Sauvegarde.js','./Suivi_Turf_Turbo_V4_GoogleDrive.js'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(hit=>hit||fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return res;}).catch(()=>caches.match('./index.html'))));});

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Suivi Turf Turbo">
+  <rect width="512" height="512" rx="112" fill="#102b46"/>
+  <path d="M82 340h348v42H82z" fill="#68d5b1"/>
+  <path d="M122 300c38-76 78-114 126-114s88 38 142 114" fill="none" stroke="#f4f7fb" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="248" cy="150" r="34" fill="#68d5b1"/>
+  <path d="M204 244l-34 72m126-72 34 72" stroke="#f4f7fb" stroke-width="22" stroke-linecap="round"/>
+</svg>
