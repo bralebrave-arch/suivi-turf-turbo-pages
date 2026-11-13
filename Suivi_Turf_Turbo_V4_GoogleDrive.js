@@ -68,7 +68,7 @@ function createGoogleDriveBackup(options={}){
   setFileId(id);return data;
  }
  function disconnect(){token=null;tokenExpiresAt=0;tokenClient=null;}
- return {connect,uploadBackup,downloadBackup,disconnect,clearFileId,isConnected:()=>!!token&&Date.now()<tokenExpiresAt,fileName:FILE_NAME,scope:SCOPE};
+ return {prepare:loadGIS,connect,uploadBackup,downloadBackup,disconnect,clearFileId,isConnected:()=>!!token&&Date.now()<tokenExpiresAt,fileName:FILE_NAME,scope:SCOPE};
 }
 root.TurfV4GoogleDrive=createGoogleDriveBackup;
 if(typeof module!=='undefined'&&module.exports)module.exports={createGoogleDriveBackup,FILE_NAME,SCOPE};
