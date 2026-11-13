@@ -7,11 +7,25 @@ const FILE_NAME='suivi-turf-turbo-sauvegarde-v4.json';
 function createGoogleDriveBackup(options={}){
  const fetcher=options.fetch||root.fetch?.bind(root);
  const storage=options.storage||root.localStorage;
- const googleApi=options.google||root.google;
  const validateBackup=options.validateBackup||((data)=>root.TurfV4Backup?.validateBackup?.(data));
+ const getGoogleApi=()=>options.google||root.google||null;
+ let gisPromise=null;
  const loadGIS=options.loadGIS||(()=>new Promise((resolve,reject)=>{
-  if(googleApi?.accounts?.oauth2){resolve();return;}
-  const s=root.document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=resolve;s.onerror=()=>reject(new Error('Impossible de charger le service de connexion Google.'));root.document.head.appendChild(s);
+  if(getGoogleApi()?.accounts?.oauth2){resolve();return;}
+  if(gisPromise){gisPromise.then(resolve,reject);return;}
+  if(!root.document?.head){reject(new Error('Le navigateur ne permet pas de charger le service Google.'));return;}
+  gisPromise=new Promise((ok,no)=>{
+   const existing=root.document.querySelector('script[data-turf-google-identity]');
+   if(existing){existing.addEventListener('load',ok,{once:true});existing.addEventListener('error',()=>no(new Error('Impossible de charger le service de connexion Google.')),{once:true});return;}
+   const script=root.document.createElement('script');
+   script.src='https://accounts.google.com/gsi/client';
+   script.async=true;
+   script.dataset.turfGoogleIdentity='true';
+   script.onload=ok;
+   script.onerror=()=>no(new Error('Impossible de charger le service de connexion Google.'));
+   root.document.head.appendChild(script);
+  });
+  gisPromise.then(resolve,reject);
  }));
  let token=null,tokenExpiresAt=0,tokenClient=null;
  function requireFetch(){if(typeof fetcher!=='function')throw new Error('Connexion Internet indisponible.');}
@@ -19,9 +33,10 @@ function createGoogleDriveBackup(options={}){
  function setFileId(id){try{storage?.setItem('turf-v4-drive-backup-file-id',id);}catch(_){throw new Error('Impossible de mémoriser la référence du fichier Drive sur cet appareil.');}}
  function clearFileId(){try{storage?.removeItem('turf-v4-drive-backup-file-id');}catch(_){}}
  async function connect(clientId){
-  if(!clientId||!/^\S+\.apps\.googleusercontent\.com$/.test(clientId))throw new Error('Identifiant client Google OAuth invalide ou manquant.');
+  if(!clientId||!/^\\S+\\.apps\\.googleusercontent\\.com$/.test(clientId))throw new Error('Identifiant client Google OAuth invalide ou manquant.');
   await loadGIS();
-  if(!googleApi?.accounts?.oauth2?.initTokenClient)throw new Error('Le service de connexion Google n’est pas disponible.');
+  const googleApi=getGoogleApi();
+  if(!googleApi?.accounts?.oauth2?.initTokenClient)throw new Error('Le service de connexion Google n’est pas disponible après son chargement.');
   return new Promise((resolve,reject)=>{
    tokenClient=googleApi.accounts.oauth2.initTokenClient({client_id:clientId,scope:SCOPE,callback:response=>{
     if(response?.error){token=null;reject(new Error('Connexion Google refusée : '+response.error));return;}
@@ -39,7 +54,7 @@ function createGoogleDriveBackup(options={}){
   let id=getFileId();if(!id){const existing=await findBackup();if(existing?.id)id=existing.id;}
   const metadata=id?{}:{name:FILE_NAME,mimeType:'application/json',parents:['appDataFolder']};
   const boundary='turf_backup_'+Math.random().toString(36).slice(2);
-  const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+'\r\n--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(backup)+'\r\n--'+boundary+'--';
+  const body='--'+boundary+'\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n'+JSON.stringify(metadata)+'\\r\\n--'+boundary+'\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n'+JSON.stringify(backup)+'\\r\\n--'+boundary+'--';
   const url=id?`${UPLOAD}/${encodeURIComponent(id)}?uploadType=multipart&fields=id,name,modifiedTime,size`:`${UPLOAD}?uploadType=multipart&fields=id,name,modifiedTime,size`;
   const method=id?'PATCH':'POST';
   const res=await checked(await fetcher(url,{method,headers:{...auth(),'Content-Type':'multipart/related; boundary='+boundary},body}),'Envoi de la sauvegarde vers Google Drive impossible');
