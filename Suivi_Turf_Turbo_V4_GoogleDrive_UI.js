@@ -41,7 +41,7 @@ function buildLocalBackup(){
 async function uploadWithRetry(reason){
  if(uploadBusy)return;
  const api=getDrive();
- if(!api.isConnected())return;
+ if(!api.isConnected()){if(reason==='envoi manuel')setStatus('Connecte d’abord ton compte Google pour envoyer la sauvegarde.','warn');return;}
  uploadBusy=true;
  try{
   const backup=buildLocalBackup();
@@ -83,6 +83,5 @@ $('turfDriveRestore').addEventListener('click',async()=>{
   setStatus(`Restauration locale terminée : ${merged.added} ajoutée(s), ${merged.duplicates} doublon(s) ignoré(s), ${merged.conflicts} conflit(s) exporté(s). Aucune course locale existante n’a été écrasée. Recharge la page pour actualiser la liste.`,merged.conflicts?'warn':'good');
  }catch(error){setStatus('Restauration Google Drive impossible : '+error.message,'bad');}
 });
-$('save')?.addEventListener('click',()=>setTimeout(()=>uploadWithRetry('après enregistrement local'),0));
-$('backupInput')?.addEventListener('change',()=>setTimeout(()=>uploadWithRetry('après restauration JSON locale'),0));
+$('save')?.addEventListener('click',()=>setTimeout(()=>{const message=$('readiness')?.textContent||'';if(message.includes('Course enregistrée localement.'))uploadWithRetry('après enregistrement local');},0));
 })();
