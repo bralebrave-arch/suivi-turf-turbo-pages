@@ -34,6 +34,7 @@ try{clientInput.value=localStorage.getItem(CLIENT_KEY)||'';}catch(_){}
 let drive=null,uploadBusy=false;
 function setStatus(message,type=''){status.className='status '+type;status.textContent=message;}
 function getDrive(){if(!drive)drive=DriveFactory({validateBackup:Backup.validateBackup});return drive;}
+getDrive().prepare().then(()=>setStatus('Service Google chargé. Identifiant OAuth requis pour connecter le compte.','')).catch(error=>setStatus('Service Google indisponible : '+error.message,'warn'));
 function buildLocalBackup(){
  const races=Backup.readStoredRaces(localStorage,STORAGE_KEY);
  return Backup.buildBackup(races);
