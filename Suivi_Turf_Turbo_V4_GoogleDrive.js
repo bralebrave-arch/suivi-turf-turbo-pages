@@ -33,7 +33,7 @@ function createGoogleDriveBackup(options={}){
  function setFileId(id){try{storage?.setItem('turf-v4-drive-backup-file-id',id);}catch(_){throw new Error('Impossible de mémoriser la référence du fichier Drive sur cet appareil.');}}
  function clearFileId(){try{storage?.removeItem('turf-v4-drive-backup-file-id');}catch(_){}}
  async function connect(clientId){
-  if(!clientId||!/^\\S+\\.apps\\.googleusercontent\\.com$/.test(clientId))throw new Error('Identifiant client Google OAuth invalide ou manquant.');
+  if(!clientId||!/^\S+\.apps\.googleusercontent\.com$/.test(clientId))throw new Error('Identifiant client Google OAuth invalide ou manquant.');
   await loadGIS();
   const googleApi=getGoogleApi();
   if(!googleApi?.accounts?.oauth2?.initTokenClient)throw new Error('Le service de connexion Google n’est pas disponible après son chargement.');
