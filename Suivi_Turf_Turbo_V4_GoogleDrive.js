@@ -54,7 +54,7 @@ function createGoogleDriveBackup(options={}){
   let id=getFileId();if(!id){const existing=await findBackup();if(existing?.id)id=existing.id;}
   const metadata=id?{}:{name:FILE_NAME,mimeType:'application/json',parents:['appDataFolder']};
   const boundary='turf_backup_'+Math.random().toString(36).slice(2);
-  const body='--'+boundary+'\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n'+JSON.stringify(metadata)+'\\r\\n--'+boundary+'\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n'+JSON.stringify(backup)+'\\r\\n--'+boundary+'--';
+  const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+'\r\n--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(backup)+'\r\n--'+boundary+'--';
   const url=id?`${UPLOAD}/${encodeURIComponent(id)}?uploadType=multipart&fields=id,name,modifiedTime,size`:`${UPLOAD}?uploadType=multipart&fields=id,name,modifiedTime,size`;
   const method=id?'PATCH':'POST';
   const res=await checked(await fetcher(url,{method,headers:{...auth(),'Content-Type':'multipart/related; boundary='+boundary},body}),'Envoi de la sauvegarde vers Google Drive impossible');
