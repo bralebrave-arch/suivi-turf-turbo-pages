@@ -22,7 +22,7 @@ function parseTable(input){
  if(new Set(headers.map(norm)).size!==headers.length)throw new Error('Le tableau contient des colonnes en double.');
  const rows=lines.slice(1).map((line,i)=>{
   const cells=splitLine(line,delimiter);
-  if(cells.length!==headers.length)throw new Error(\`Ligne \${i+2} : \${cells.length} colonnes au lieu de \${headers.length}. Reprends la copie du tableau sans perdre de cellules.\`);
+  if(cells.length!==headers.length)throw new Error('Ligne '+(i+2)+' : '+cells.length+' colonnes au lieu de '+headers.length+'. Reprends la copie du tableau sans perdre de cellules.');
   return Object.fromEntries(headers.map((h,j)=>[h,cells[j]]));
  });
  return rows;
