@@ -5,24 +5,24 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.TurfV4TextImporter=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
 const clean=s=>String(s??'').trim();
-function delimiterOf(line){const counts={'\\t':0,';':0,'|':0};let q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){i++;continue;}q=!q;}else if(!q&&Object.hasOwn(counts,c))counts[c]++;}return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][1]>0?Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0]:null;}
+function delimiterOf(line){const counts={'\t':0,';':0,'|':0};let q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){i++;continue;}q=!q;}else if(!q&&Object.hasOwn(counts,c))counts[c]++;}return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][1]>0?Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0]:null;}
 function splitLine(line,delimiter){const out=[];let cell='',q=false;for(let i=0;i<line.length;i++){const c=line[i],n=line[i+1];if(q){if(c==='"'&&n==='"'){cell+='"';i++;}else if(c==='"')q=false;else cell+=c;}else if(c==='"'&&cell==='')q=true;else if(c===delimiter){out.push(clean(cell));cell='';}else cell+=c;}if(q)throw new Error('Guillemet non fermé dans le tableau copié.');out.push(clean(cell));return out;}
 function parseTable(input){
- const src=String(input||'').replace(/^\\uFEFF/,'');
+ const src=String(input||'').replace(/^\uFEFF/,'');
  if(!src.trim())throw new Error('Aucun texte à importer.');
  // Ne pas appliquer trim() aux lignes : cela supprimerait les tabulations finales,
  // donc les cellules vides des colonnes situées à droite dans les tableaux PDF.
- const lines=src.split(/\\r?\\n/).filter(x=>x.trim()!=='');
+ const lines=src.split(/\r?\n/).filter(x=>x.trim()!=='');
  if(lines.length<2)throw new Error('Il faut une ligne d’en-têtes et au moins une ligne de cheval.');
  const delimiter=delimiterOf(lines[0]);
  if(!delimiter)throw new Error('Aucun séparateur de colonnes détecté. Copie le tableau avec ses tabulations, ou utilise un CSV avec ;.');
  const headers=splitLine(lines[0],delimiter);
  if(headers.some(x=>!x))throw new Error('Une colonne du tableau copié a un en-tête vide.');
- const norm=s=>clean(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+ const norm=s=>clean(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
  if(new Set(headers.map(norm)).size!==headers.length)throw new Error('Le tableau contient des colonnes en double.');
  const rows=lines.slice(1).map((line,i)=>{
   const cells=splitLine(line,delimiter);
-  if(cells.length!==headers.length)throw new Error(`Ligne ${i+2} : ${cells.length} colonnes au lieu de ${headers.length}. Reprends la copie du tableau sans perdre de cellules.`);
+  if(cells.length!==headers.length)throw new Error(\`Ligne \${i+2} : \${cells.length} colonnes au lieu de \${headers.length}. Reprends la copie du tableau sans perdre de cellules.\`);
   return Object.fromEntries(headers.map((h,j)=>[h,cells[j]]));
  });
  return rows;
