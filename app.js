@@ -46,11 +46,15 @@ function renderTextImportPreview(result){pendingTextImport=result;$('textImportP
 let pdfJsPromise=null;
 async function loadPdfJs(){
  if(pdfJsPromise)return pdfJsPromise;
- const version='6.5.438';
- pdfJsPromise=import(`https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.mjs`).then(pdfjs=>{
-  pdfjs.GlobalWorkerOptions.workerSrc=`https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.mjs`;
+ // Chargement depuis le même domaine que l'application : évite les blocages
+ // CORS/CSP et les échecs réseau du CDN côté navigateur.
+ pdfJsPromise=import('/api/pdfjs?asset=pdf.mjs').then(pdfjs=>{
+  pdfjs.GlobalWorkerOptions.workerSrc='/api/pdfjs?asset=pdf.worker.mjs';
   return pdfjs;
- }).catch(err=>{pdfJsPromise=null;throw new Error('Impossible de charger PDF.js depuis le réseau : '+(err?.message||err));});
+ }).catch(err=>{
+  pdfJsPromise=null;
+  throw new Error('Impossible de charger le moteur PDF.js via le serveur de l’application : '+(err?.message||err));
+ });
  return pdfJsPromise;
 }
 $('readPdf').addEventListener('click',async()=>{
