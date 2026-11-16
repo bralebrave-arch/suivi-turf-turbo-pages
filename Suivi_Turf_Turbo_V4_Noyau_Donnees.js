@@ -79,6 +79,8 @@
       raceName: asText(input.raceName ?? input.name),
       date: asText(input.date),
       localTime: asText(input.localTime),
+      meeting: Number.isInteger(asNumber(input.meeting)) ? asNumber(input.meeting) : null,
+      raceNumber: Number.isInteger(asNumber(input.raceNumber)) ? asNumber(input.raceNumber) : null,
       track: asText(input.track ?? input.hippodrome),
       country: asText(input.country),
       discipline,
