@@ -37,7 +37,7 @@ function reconstructPage(textContent,options={}){
    cells[col]=clean(cells[col]+' '+item.str);
   }
   const name=cells[1].replace(/\s+/g,' ').trim();
-  const weight=cells[7].replace(/\s+/g,'').replace(/,/g,'.');
+  const weight=cells[7].replace(/\s+/g,'').replace(/\.?kg$/i,'').replace(',','.');
   if(name.length<2||!/^\d{1,2}(?:\.\d)?(?:kg)?$/i.test(weight))continue;
   rows.push({number,cells});
  }
