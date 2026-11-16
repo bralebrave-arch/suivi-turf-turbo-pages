@@ -82,7 +82,7 @@ function reconstructDocument(pages){
   const dataLines=page.text.split('\n').slice(1);if(dataLines.length){combined+='\n'+dataLines.join('\n');rowCount+=page.rowCount;}
  }
  const skipped=results.filter(x=>x.error&&/En-têtes du tableau des partants non reconnus/.test(x.error));
- return {pages:results,text:combined,rowCount,warnings:[...new Set([...results.flatMap(x=>x.warnings||[]),...(skipped.length?[\x60${skipped.length} page(s) sans tableau de partants reconnu(s) ont été ignorées.\x60]:[])])],errors};
+ return {pages:results,text:combined,rowCount,warnings:[...new Set([...results.flatMap(x=>x.warnings||[]),...(skipped.length?[String(skipped.length)+' page(s) sans tableau de partants reconnu(s) ont été ignorées.'] : [])])],errors};
 }
 return {groupLines,reconstructPage,reconstructDocument};
 });
