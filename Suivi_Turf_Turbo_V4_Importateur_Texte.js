@@ -27,6 +27,38 @@ function parseTable(input){
  });
  return rows;
 }
-function importText(input,importer,meta={}){if(!importer||typeof importer.fromRecords!=='function')throw new Error('Le moteur d’importation principal est indisponible.');const rows=parseTable(input);const result=importer.fromRecords(rows,{...meta,source:meta.source||'Tableau copié depuis un journal hippique LONAB'});result.warnings.unshift('Import par texte tabulaire : aucune lecture PDF ni reconnaissance optique automatique n’a été effectuée. Vérifie chaque cheval et chaque colonne sur le document original.');return result;}
+function normalizeHeader(s){return clean(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,'');}
+function findColumn(headers,aliases){return headers.find(h=>aliases.includes(normalizeHeader(h)));}
+function filterEditorialRows(rows){
+ if(!rows.length)return {rows,ignored:0};
+ const headers=Object.keys(rows[0]);
+ const numberKey=findColumn(headers,['n','no','numero','num','numero cheval']);
+ const nameKey=findColumn(headers,['chevaux','cheval','nom','name','horse']);
+ const weightKey=findColumn(headers,['poids','poidskg','poidsporte','poidsporte','weightkg','weight']);
+ // Filtrage spécialisé uniquement lorsque le journal présente un tableau hippique
+ // structuré avec numéro, nom du cheval et poids. Les autres imports restent intacts.
+ if(!numberKey||!nameKey||!weightKey)return {rows,ignored:0};
+ const candidates=rows.filter(row=>{
+  const numberText=clean(row[numberKey]);
+  const number=Number(numberText);
+  const name=clean(row[nameKey]);
+  const weightText=clean(row[weightKey]).replace(/\\s+/g,'').replace(/\\.?kg$/i,'').replace(',','.');
+  const weight=Number(weightText);
+  return /^\\d{1,2}$/.test(numberText)&&Number.isInteger(number)&&number>=1&&number<=30&&name.length>=2&&Number.isFinite(weight)&&weight>=30&&weight<=100;
+ });
+ // Ne filtrer que si le signal est suffisamment fort : au moins 5 chevaux
+ // avec numéro, nom et poids plausibles, et des lignes parasites supplémentaires.
+ if(candidates.length>=5&&candidates.length<rows.length)return {rows:candidates,ignored:rows.length-candidates.length};
+ return {rows,ignored:0};
+}
+function importText(input,importer,meta={}){
+ if(!importer||typeof importer.fromRecords!=='function')throw new Error('Le moteur d’importation principal est indisponible.');
+ const parsedRows=parseTable(input);
+ const filtered=filterEditorialRows(parsedRows);
+ const result=importer.fromRecords(filtered.rows,{...meta,source:meta.source||'Tableau copié depuis un journal hippique LONAB'});
+ if(filtered.ignored)result.warnings.unshift(`${filtered.ignored} ligne(s) éditoriale(s) ou non-partant(s) sans poids exploitable ignorée(s) ; ${filtered.rows.length} cheval(aux) avec numéro, nom et poids plausibles conservé(s). Vérifie le PDF original avant intégration.`);
+ result.warnings.unshift('Import par texte tabulaire : aucune lecture PDF ni reconnaissance optique automatique n’a été effectuée. Vérifie chaque cheval et chaque colonne sur le document original.');
+ return result;
+}
 return {parseTable,importText};
 });
