@@ -60,7 +60,12 @@
   });
   $("canalturfConfirm").addEventListener("click", () => {
     if (!pending) return;
-    if (document.querySelector("#canalturfRows select[value='']")) return;
+    const selectors = [...$("canalturfRows").querySelectorAll("select[data-status]")];
+    if (selectors.some(select => select.value === "unknown")) {
+      $("canalturfStatus").textContent = "Validation incomplète : indique explicitement pour chaque cheval s’il est partant ou non-partant avant le transfert.";
+      $("canalturfStatus").className = "status warn";
+      return;
+    }
     const race = pending.race;
     race.runners = race.runners.map((r,i) => ({...r, status:$("canalturfRows").querySelector('[data-status="' + i + '"]').value}));
     race.provenance = {source:"Canalturf",sourceUrl:race.sourceUrl};
