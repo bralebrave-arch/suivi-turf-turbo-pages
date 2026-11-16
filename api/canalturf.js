@@ -29,7 +29,7 @@ function parsePage(html, url) {
   const title = text((clean.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i) || [])[1] || "");
   const titleRace = title.replace(/^Le pronostic du\s*/i, "").trim();
   const intro = text((clean.match(/<h1\b[^>]*>[\s\S]*?<\/h1>([\s\S]{0,700})/i) || [])[1] || "");
-  const heading = intro.match(/(\d{1,2}:\d{2})\s*-\s*R(\d+)\s*C(\d+)\s*-\s*([A-ZÀ-Ÿ][A-ZÀ-Ÿ -]+)/i);
+  const heading = intro.match(/(\d{1,2}:\d{2})\s*-\s*(?:R(\d+)\s*C(\d+)|RÉUNION\s+(\d+)\s+COURSE\s+(\d+))\s*-\s*([A-ZÀ-Ÿ][A-ZÀ-Ÿ -]+)/i);
   const metaLine = text((clean.match(/<small\b[^>]*>([\s\S]*?)<\/small>/i) || [])[1] || "");
   const dist = metaLine.match(/(\d{3,4})\s*m/i);
   const disciplineText = metaLine.split(/[-–]/)[0].trim();
