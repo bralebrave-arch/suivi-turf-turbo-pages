@@ -79,7 +79,7 @@ function parsePage(html, url) {
   if (!runners.length) throw new Error("Aucun partant exploitable détecté. Le tableau peut être vide ou la page ne pas encore publier les partants.");
   const path = url.pathname.match(/^\/pronostics-PMU\/(\d{4}-\d{2}-\d{2})\/([^/]+)\/(\d+)_/i);
   const date = path?.[1] || "";
-  const track = heading?.[4]?.trim() || decode(path?.[2] || "").replace(/-/g, " ").toUpperCase();
+  const track = heading?.[6]?.trim() || decode(path?.[2] || "").replace(/-/g, " ").toUpperCase();
   const caption = text((table.match(/<caption\b[^>]*>([\s\S]*?)<\/caption>/i) || [])[1] || "");
   const raceCode = caption.match(/\b(R\d+C\d+)\b/i)?.[1]?.toUpperCase() || (heading ? "R" + heading[2] + "C" + heading[3] : "");
   const nonRunnerText = text((clean.match(/Non-partant\(s\)[\s\S]{0,500}/i) || [])[0] || "");
@@ -87,8 +87,8 @@ function parsePage(html, url) {
   return {
     race: {
       raceName: titleRace || title, date, track, discipline, distanceM: numberOrNull(dist?.[1]),
-      localTime: heading?.[1] || "", meeting: heading?.[2] ? Number(heading[2]) : null,
-      raceNumber: heading?.[3] ? Number(heading[3]) : null, raceCode,
+      localTime: heading?.[1] || "", meeting: Number(heading?.[2] || heading?.[4]) || null,
+      raceNumber: Number(heading?.[3] || heading?.[5]) || null, raceCode,
       surface, ground: surfaceLine || null, source: "Canalturf",
       sourceUrl: url.toString(), collectedAt: new Date().toISOString(), collectionStatus: "partial",
       runners
