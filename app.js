@@ -46,11 +46,15 @@ function renderTextImportPreview(result){pendingTextImport=result;$('textImportP
 let pdfJsPromise=null;
 async function loadPdfJs(){
  if(pdfJsPromise)return pdfJsPromise;
- const version='6.5.438';
- pdfJsPromise=import(`https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.mjs`).then(pdfjs=>{
-  pdfjs.GlobalWorkerOptions.workerSrc=`https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.mjs`;
+ // Chargement depuis le même domaine que l'application : évite les blocages
+ // CORS/CSP et les échecs réseau du CDN côté navigateur.
+ pdfJsPromise=import('/api/pdfjs?asset=pdf.mjs').then(pdfjs=>{
+  pdfjs.GlobalWorkerOptions.workerSrc='/api/pdfjs?asset=pdf.worker.mjs';
   return pdfjs;
- }).catch(err=>{pdfJsPromise=null;throw new Error('Impossible de charger PDF.js depuis le réseau : '+(err?.message||err));});
+ }).catch(err=>{
+  pdfJsPromise=null;
+  throw new Error('Impossible de charger le moteur PDF.js via le serveur de l’application : '+(err?.message||err));
+ });
  return pdfJsPromise;
 }
 $('readPdf').addEventListener('click',async()=>{
@@ -63,8 +67,10 @@ $('readPdf').addEventListener('click',async()=>{
   if(!result.text){$('pdfStatus').textContent=`${result.pageCount} page(s) examinée(s), mais aucun tableau exploitable reconnu.`;show('Aucun tableau n’a pu être reconstruit. Essaie l’import par texte copié ou vérifie si le PDF est scanné.','warn');return;}
   $('lonabText').value=result.text;
   $('pdfStatus').textContent=`PDF lu localement : ${result.pageCount} page(s), ${result.rowCount} ligne(s) de chevaux reconstituée(s). Fichier : ${result.fileName}. Vérifie chaque ligne sur le document original.`;
-  $('importLonabText').click();
+  const preview=TextImporter.importText(result.text,Importer,{raceName:$('raceName').value,date:$('raceDate').value,track:$('track').value,discipline:$('discipline').value,distanceM:$('distance').value,source:'PDF lu localement — Journal hippique LONAB',pdfRead:true});
+  renderTextImportPreview(preview);
   if(result.errors?.length)show(`Aperçu préparé avec ${result.rowCount} ligne(s). ${result.errors.length} page(s) présentent des erreurs : ${result.errors.map(x=>`page ${x.pageNumber}: ${x.message}`).join(' | ')}`,'warn');
+  else show(`PDF lu et aperçu préparé : ${preview.race.runners.length} chevaux détectés. Vérifie les lignes avant de confirmer l’intégration.`,'warn');
  }catch(err){$('pdfStatus').textContent='Lecture impossible : '+err.message;show('Lecture PDF impossible : '+err.message,'bad');}
  finally{$('readPdf').disabled=false;}
 });
