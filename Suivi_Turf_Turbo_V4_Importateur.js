@@ -19,7 +19,7 @@ function drawNumber(v){
  if(v==null||text(v)==='')return null;
  const source=String(v).trim();
  if(/^\\d+$/.test(source))return Number(source);
- const mixed=source.match(/^(\\d{1,2})\\s*[–—-]\\s*\\S.+$/);
+ const mixed=source.match(/^\\s*(\\d{1,2})(?=$|\\s|[-–—−‑‒﹘－])/u);
  if(mixed)return Number(mixed[1]);
  return checkedNumber(source,'Corde',{min:0,integer:true});
 }
