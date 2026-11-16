@@ -12,10 +12,20 @@ module.exports = async function handler(req, res) {
   }
   if (!FILES.has(asset)) return res.status(400).json({ error: "Fichier PDF.js non autorisé." });
   try {
-    const upstream = await fetch("https://cdn.jsdelivr.net/npm/pdfjs-dist@" + VERSION + "/build/" + asset, {
-      headers: { "Accept": "application/javascript, text/javascript, */*;q=0.8" }
-    });
-    if (!upstream.ok) return res.status(502).json({ error: "Source PDF.js indisponible (HTTP " + upstream.status + ")." });
+    let upstream = null;
+    const sources = [
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@" + VERSION + "/build/" + asset,
+      "https://unpkg.com/pdfjs-dist@" + VERSION + "/build/" + asset
+    ];
+    for (const source of sources) {
+      try {
+        const candidate = await fetch(source, {
+          headers: { "Accept": "application/javascript, text/javascript, */*;q=0.8" }
+        });
+        if (candidate.ok) { upstream = candidate; break; }
+      } catch (_) {}
+    }
+    if (!upstream) return res.status(502).json({ error: "Sources PDF.js indisponibles (jsDelivr et unpkg)." });
     const declared = Number(upstream.headers.get("content-length") || 0);
     if (declared > MAX_BYTES) return res.status(502).json({ error: "Ressource PDF.js trop volumineuse." });
     const bytes = Buffer.from(await upstream.arrayBuffer());
