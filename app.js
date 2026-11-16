@@ -67,8 +67,10 @@ $('readPdf').addEventListener('click',async()=>{
   if(!result.text){$('pdfStatus').textContent=`${result.pageCount} page(s) examinée(s), mais aucun tableau exploitable reconnu.`;show('Aucun tableau n’a pu être reconstruit. Essaie l’import par texte copié ou vérifie si le PDF est scanné.','warn');return;}
   $('lonabText').value=result.text;
   $('pdfStatus').textContent=`PDF lu localement : ${result.pageCount} page(s), ${result.rowCount} ligne(s) de chevaux reconstituée(s). Fichier : ${result.fileName}. Vérifie chaque ligne sur le document original.`;
-  $('importLonabText').click();
+  const preview=TextImporter.importText(result.text,Importer,{raceName:$('raceName').value,date:$('raceDate').value,track:$('track').value,discipline:$('discipline').value,distanceM:$('distance').value,source:'PDF lu localement — Journal hippique LONAB',pdfRead:true});
+  renderTextImportPreview(preview);
   if(result.errors?.length)show(`Aperçu préparé avec ${result.rowCount} ligne(s). ${result.errors.length} page(s) présentent des erreurs : ${result.errors.map(x=>`page ${x.pageNumber}: ${x.message}`).join(' | ')}`,'warn');
+  else show(`PDF lu et aperçu préparé : ${preview.race.runners.length} chevaux détectés. Vérifie les lignes avant de confirmer l’intégration.`,'warn');
  }catch(err){$('pdfStatus').textContent='Lecture impossible : '+err.message;show('Lecture PDF impossible : '+err.message,'bad');}
  finally{$('readPdf').disabled=false;}
 });
