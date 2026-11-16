@@ -57,7 +57,7 @@ function importText(input,importer,meta={}){
  const filtered=filterEditorialRows(parsedRows);
  const result=importer.fromRecords(filtered.rows,{...meta,source:meta.source||'Tableau copié depuis un journal hippique LONAB'});
  if(filtered.ignored)result.warnings.unshift(`${filtered.ignored} ligne(s) éditoriale(s) ou non-partant(s) sans poids exploitable ignorée(s) ; ${filtered.rows.length} cheval(aux) avec numéro, nom et poids plausibles conservé(s). Vérifie le PDF original avant intégration.`);
- result.warnings.unshift('Import par texte tabulaire : aucune lecture PDF ni reconnaissance optique automatique n’a été effectuée. Vérifie chaque cheval et chaque colonne sur le document original.');
+ if(!meta.pdfRead)result.warnings.unshift('Import par texte tabulaire : aucune lecture PDF ni reconnaissance optique automatique n’a été effectuée. Vérifie chaque cheval et chaque colonne sur le document original.');
  return result;
 }
 return {parseTable,importText};
