@@ -23,8 +23,7 @@ function reconstructPage(textContent,options={}){
  const boundaries=[34,86,132,184,244,260,280,310,335,365];
  const headers=['numero','cheval','jockey','entraineur','proprietaire','sexe_age','corde','poids','perf','gains'];
  const rows=[];
- for(const line of lines){
-  if(line.y<=header.y+5)continue;
+ for(const line of lines.slice(headerIndex+1)){
   const main=line.items.filter(x=>x.x<410);
   const first=main.find(x=>x.x>=20&&x.x<35&&/^\d{1,2}$/.test(x.str));
   if(!first)continue;
