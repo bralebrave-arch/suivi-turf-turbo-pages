@@ -47,6 +47,7 @@
       trainer: field(input.trainer, source.trainer),
       draw: field(asNumber(input.draw), source.draw),
       weightKg: field(asNumber(input.weightKg), source.weightKg),
+      handicapValue: field(asNumber(input.handicapValue), source.handicapValue),
       odds: field(asNumber(input.odds), source.odds),
       recentForm: field(recent.length ? recent : null, source.recentForm),
       distanceSuitability: field(input.distanceSuitability ?? null, source.distanceSuitability),
@@ -78,6 +79,8 @@
       raceName: asText(input.raceName ?? input.name),
       date: asText(input.date),
       localTime: asText(input.localTime),
+      meeting: Number.isInteger(asNumber(input.meeting)) ? asNumber(input.meeting) : null,
+      raceNumber: Number.isInteger(asNumber(input.raceNumber)) ? asNumber(input.raceNumber) : null,
       track: asText(input.track ?? input.hippodrome),
       country: asText(input.country),
       discipline,
@@ -133,7 +136,7 @@
   }
 
   function summarizeSources(race) {
-    const fields = ['jockey','trainer','draw','weightKg','odds','recentForm','distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability'];
+    const fields = ['jockey','trainer','draw','weightKg','handicapValue','odds','recentForm','distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability'];
     const counts = Object.fromEntries([...STATUSES].map(s => [s, 0]));
     race.runners.forEach(r => fields.forEach(k => { const s = r[k]?.status; if (counts[s] != null) counts[s]++; }));
     const urls = unique(race.runners.flatMap(r => fields.map(k => r[k]?.sourceUrl).filter(Boolean)));
