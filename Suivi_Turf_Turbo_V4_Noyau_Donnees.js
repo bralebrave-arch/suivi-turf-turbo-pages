@@ -101,9 +101,9 @@
     const errors = [], warnings = [], seenNumbers = new Set(), seenIds = new Set();
     if (!race.raceName) errors.push('Nom de course manquant.');
     if (!race.date || Number.isNaN(Date.parse(race.date))) errors.push('Date de course absente ou invalide.');
-    if (!race.track) warnings.push('Hippodrome non renseigné.');
-    if (!race.discipline || race.discipline === 'autre') warnings.push('Discipline non déterminée.');
-    if (!Number.isFinite(race.distanceM) || race.distanceM <= 0) warnings.push('Distance absente ou invalide.');
+    if (!race.track) errors.push('Hippodrome manquant : analyse bloquée.');
+    if (!race.discipline || race.discipline === 'autre') errors.push('Discipline non déterminée : analyse bloquée.');
+    if (!Number.isFinite(race.distanceM) || race.distanceM <= 0) errors.push('Distance absente ou invalide : analyse bloquée.');
     if (!race.runners.length) errors.push('Aucun partant importé.');
     race.runners.forEach((r, i) => {
       const label = r.number == null ? `Ligne ${i + 1}` : `N° ${r.number}`;
@@ -148,10 +148,12 @@
     const freshness = assessFreshness(race);
     const sources = summarizeSources(race);
     const blockers = [...validation.errors];
-    if (validation.counts.unresolvedStatuses) blockers.push(`${validation.counts.unresolvedStatuses} statut(s) de partant à confirmer.`);
+    if (validation.counts.unresolvedStatuses) blockers.push(validation.counts.unresolvedStatuses + ' statut(s) de partant à confirmer.');
+    const evidenceCount = race.runners.filter(r => r.status === 'runner' && ((Array.isArray(r.recentForm.value) && r.recentForm.value.length > 0) || (Array.isArray(r.historicalPerformances) && r.historicalPerformances.length > 0) || ['distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability','valueSuitability','scenarioSuitability'].some(k => r[k] != null && r[k].value !== null && r[k].value !== undefined && r[k].status !== 'missing'))).length;
+    if (evidenceCount < 3) blockers.push('Données hippiques exploitables pour seulement ' + evidenceCount + ' partant(s) : minimum 3 requis.');
     if (freshness.status !== 'fresh') blockers.push(freshness.label + '.');
-    return { ready: validation.canAnalyze && freshness.status === 'fresh', validation, freshness, sources, blockers: unique(blockers), recommendation: validation.canAnalyze && freshness.status === 'fresh' ? 'Données suffisamment structurées pour lancer les moteurs.' : 'Compléter ou actualiser les données avant de lancer une analyse complète.' };
+    const ready = validation.canAnalyze && freshness.status === 'fresh' && blockers.length === 0;
+    return { ready, validation, freshness, sources, evidenceCount, blockers: unique(blockers), recommendation: ready ? 'Données structurées et couverture minimale suffisantes pour lancer les moteurs.' : 'Compléter ou actualiser les données avant de lancer une analyse complète.' };
   }
-
   return { SCHEMA_VERSION, field, normalizeRunner, normalizeRace, validateRace, assessFreshness, summarizeSources, makeAnalysisReadiness };
 });
