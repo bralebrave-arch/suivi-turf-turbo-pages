@@ -148,10 +148,12 @@
     const freshness = assessFreshness(race);
     const sources = summarizeSources(race);
     const blockers = [...validation.errors];
-    if (validation.counts.unresolvedStatuses) blockers.push(`${validation.counts.unresolvedStatuses} statut(s) de partant à confirmer.`);
+    if (validation.counts.unresolvedStatuses) blockers.push(validation.counts.unresolvedStatuses + ' statut(s) de partant à confirmer.');
+    const evidenceCount = race.runners.filter(r => r.status === 'runner' && ((Array.isArray(r.recentForm.value) && r.recentForm.value.length > 0) || ['distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability','odds'].some(k => r[k]?.value !== null && r[k]?.value !== undefined && r[k]?.status !== 'missing'))).length;
+    if (evidenceCount < 3) blockers.push('Données hippiques exploitables pour seulement ' + evidenceCount + ' partant(s) : minimum 3 requis.');
     if (freshness.status !== 'fresh') blockers.push(freshness.label + '.');
-    return { ready: validation.canAnalyze && freshness.status === 'fresh', validation, freshness, sources, blockers: unique(blockers), recommendation: validation.canAnalyze && freshness.status === 'fresh' ? 'Données suffisamment structurées pour lancer les moteurs.' : 'Compléter ou actualiser les données avant de lancer une analyse complète.' };
+    const ready = validation.canAnalyze && freshness.status === 'fresh' && blockers.length === 0;
+    return { ready, validation, freshness, sources, evidenceCount, blockers: unique(blockers), recommendation: ready ? 'Données structurées et couverture minimale suffisantes pour lancer les moteurs.' : 'Compléter ou actualiser les données avant de lancer une analyse complète.' };
   }
-
   return { SCHEMA_VERSION, field, normalizeRunner, normalizeRace, validateRace, assessFreshness, summarizeSources, makeAnalysisReadiness };
 });
