@@ -101,9 +101,9 @@
     const errors = [], warnings = [], seenNumbers = new Set(), seenIds = new Set();
     if (!race.raceName) errors.push('Nom de course manquant.');
     if (!race.date || Number.isNaN(Date.parse(race.date))) errors.push('Date de course absente ou invalide.');
-    if (!race.track) warnings.push('Hippodrome non renseigné.');
-    if (!race.discipline || race.discipline === 'autre') warnings.push('Discipline non déterminée.');
-    if (!Number.isFinite(race.distanceM) || race.distanceM <= 0) warnings.push('Distance absente ou invalide.');
+    if (!race.track) errors.push('Hippodrome manquant : analyse bloquée.');
+    if (!race.discipline || race.discipline === 'autre') errors.push('Discipline non déterminée : analyse bloquée.');
+    if (!Number.isFinite(race.distanceM) || race.distanceM <= 0) errors.push('Distance absente ou invalide : analyse bloquée.');
     if (!race.runners.length) errors.push('Aucun partant importé.');
     race.runners.forEach((r, i) => {
       const label = r.number == null ? `Ligne ${i + 1}` : `N° ${r.number}`;
