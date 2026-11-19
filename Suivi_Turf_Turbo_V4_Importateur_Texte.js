@@ -27,7 +27,7 @@ function parseTable(input){
  });
  return rows;
 }
-function normalizeHeader(s){return clean(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,'');}
+function normalizeHeader(s){return clean(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');}
 function findColumn(headers,aliases){return headers.find(h=>aliases.includes(normalizeHeader(h)));}
 function filterEditorialRows(rows){
  if(!rows.length)return {rows,ignored:0};
@@ -42,9 +42,9 @@ function filterEditorialRows(rows){
   const numberText=clean(row[numberKey]);
   const number=Number(numberText);
   const name=clean(row[nameKey]);
-  const weightText=clean(row[weightKey]).replace(/\\s+/g,'').replace(/\\.?kg$/i,'').replace(',','.');
+  const weightText=clean(row[weightKey]).replace(/\s+/g,'').replace(/\.?kg$/i,'').replace(',','.');
   const weight=Number(weightText);
-  return /^\\d{1,2}$/.test(numberText)&&Number.isInteger(number)&&number>=1&&number<=30&&name.length>=2&&Number.isFinite(weight)&&weight>=30&&weight<=100;
+  return /^\d{1,2}$/.test(numberText)&&Number.isInteger(number)&&number>=1&&number<=30&&name.length>=2&&Number.isFinite(weight)&&weight>=30&&weight<=100;
  });
  // Ne filtrer que si le signal est suffisamment fort : au moins 5 chevaux
  // avec numéro, nom et poids plausibles, et des lignes parasites supplémentaires.
