@@ -149,7 +149,7 @@
     const sources = summarizeSources(race);
     const blockers = [...validation.errors];
     if (validation.counts.unresolvedStatuses) blockers.push(validation.counts.unresolvedStatuses + ' statut(s) de partant à confirmer.');
-    const evidenceCount = race.runners.filter(r => r.status === 'runner' && ((Array.isArray(r.recentForm.value) && r.recentForm.value.length > 0) || ['distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability','odds'].some(k => r[k]?.value !== null && r[k]?.value !== undefined && r[k]?.status !== 'missing'))).length;
+    const evidenceCount = race.runners.filter(r => r.status === 'runner' && ((Array.isArray(r.recentForm.value) && r.recentForm.value.length > 0) || (Array.isArray(r.historicalPerformances) && r.historicalPerformances.length > 0) || ['distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability','valueSuitability','scenarioSuitability'].some(k => r[k] != null && r[k].value !== null && r[k].value !== undefined && r[k].status !== 'missing'))).length;
     if (evidenceCount < 3) blockers.push('Données hippiques exploitables pour seulement ' + evidenceCount + ' partant(s) : minimum 3 requis.');
     if (freshness.status !== 'fresh') blockers.push(freshness.label + '.');
     const ready = validation.canAnalyze && freshness.status === 'fresh' && blockers.length === 0;
