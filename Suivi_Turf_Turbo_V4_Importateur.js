@@ -21,8 +21,8 @@ function drawNumber(v){
  // PDF.js peut fusionner le numéro de corde avec le jockey ou une marque.
  // Si un numéro entier est clairement en tête, on le récupère ; sinon on laisse
  // la corde vide et on avertit l'utilisateur au lieu de bloquer tout l'import.
- const leading=source.match(/^\s*(\d{1,2})(?=$|[^\p{L}\p{N}])/u);
- if(leading)return Number(leading[1]);
+ const leading=source.match(/^\s*(\d{1,2})/u);
+ if(leading){const value=Number(leading[1]);if(value>=1&&value<=30)return value;}
  if(/^\d+$/.test(source))return Number(source);
  return null;
 }
