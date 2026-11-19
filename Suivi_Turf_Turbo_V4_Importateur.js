@@ -21,9 +21,9 @@ function drawNumber(v){
  // PDF.js peut fusionner le numéro de corde avec le jockey ou une marque.
  // Si un numéro entier est clairement en tête, on le récupère ; sinon on laisse
  // la corde vide et on avertit l'utilisateur au lieu de bloquer tout l'import.
- const leading=source.match(/^\\s*(\\d{1,2})(?=$|[^\\p{L}\\p{N}])/u);
+ const leading=source.match(/^\s*(\d{1,2})(?=$|[^\p{L}\p{N}])/u);
  if(leading)return Number(leading[1]);
- if(/^\\d+$/.test(source))return Number(source);
+ if(/^\d+$/.test(source))return Number(source);
  return null;
 }
 function normalizeDate(v){const s=text(v);if(!s)return '';let y,m,d;let hit=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(hit){y=+hit[1];m=+hit[2];d=+hit[3];}else{hit=s.match(/^(\d{1,2})[/.](\d{1,2})[/.](\d{4})$/);if(!hit)throw new Error(`Date invalide : « ${s} ». Utilise JJ/MM/AAAA ou AAAA-MM-JJ.`);d=+hit[1];m=+hit[2];y=+hit[3];}const dt=new Date(Date.UTC(y,m-1,d));if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==m-1||dt.getUTCDate()!==d)throw new Error(`Date impossible ou invalide : « ${s} ».`);return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
