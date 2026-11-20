@@ -49,6 +49,8 @@
       weightKg: field(asNumber(input.weightKg), source.weightKg),
       handicapValue: field(asNumber(input.handicapValue), source.handicapValue),
       odds: field(asNumber(input.odds), source.odds),
+      parisTurfOdds: field(input.parisTurfOdds ?? null, source.parisTurfOdds),
+      tierceMagazineOdds: field(input.tierceMagazineOdds ?? null, source.tierceMagazineOdds),
       recentForm: field(recent.length ? recent : null, source.recentForm),
       distanceSuitability: field(input.distanceSuitability ?? null, source.distanceSuitability),
       trackSuitability: field(input.trackSuitability ?? null, source.trackSuitability),
