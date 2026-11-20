@@ -36,8 +36,8 @@ function reconstructPage(textContent,options={}){
  if(headerIndex<0)throw new Error('En-têtes du tableau des partants non reconnus sur cette page. Le PDF contient du texte, mais sa structure de colonnes n’a pas été identifiée.');
  // Colonnes du tableau principal LONAB : les pronostics des médias commencent à droite
  // de x≈410 et ne doivent jamais être pris pour des chevaux.
- const boundaries=[34,86,132,184,244,260,280,310,335,365];
- const headers=['numero','cheval','jockey','entraineur','proprietaire','sexe_age','corde','poids','perf','gains'];
+ const boundaries=[34,86,132,184,244,260,280,310,335,365,386,410];
+ const headers=['numero','cheval','jockey','entraineur','proprietaire','sexe_age','corde','poids','perf','gains','parisTurfOdds','tierceMagazineOdds'];
  const rows=[];
  const dataLines=lines.filter(l=>l.y<headerY-3);
  for(const line of dataLines){
@@ -67,7 +67,7 @@ function reconstructPage(textContent,options={}){
  for(const row of rows){if(seen.has(row.number))continue;seen.add(row.number);unique.push(row);}
  if(unique.length<5)throw new Error('Le tableau a été repéré, mais seulement '+unique.length+' ligne(s) de partants sur au moins cinq ont passé les contrôles numéro/nom/poids. Import interrompu pour éviter les données erronées.');
  const output=[headers.join('\t'),...unique.map(r=>r.cells.join('\t'))];
- return {text:output.join('\n'),headers,rowCount:unique.length,ignoredLineCount:Math.max(0,dataLines.length-unique.length),pageNumber:options.pageNumber??null,warnings:['Tableau des partants extrait depuis les positions réelles du texte PDF. Les colonnes de pronostics des journaux ont été exclues.','Les données restent à vérifier avant intégration.']};
+ return {text:output.join('\n'),headers,rowCount:unique.length,ignoredLineCount:Math.max(0,dataLines.length-unique.length),pageNumber:options.pageNumber??null,warnings:['Tableau des partants extrait depuis les positions réelles du texte PDF. Les cotes Paris Turf et Tiercé Magazine sont conservées séparément des cotes PMU.','Les statuts non indiqués restent à confirmer ; les données restent à vérifier avant intégration.']};
 }
 function reconstructDocument(pages){
  if(!Array.isArray(pages)||!pages.length)throw new Error('Aucune page PDF à analyser.');
