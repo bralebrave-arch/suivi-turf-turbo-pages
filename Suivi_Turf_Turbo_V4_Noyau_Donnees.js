@@ -117,8 +117,9 @@
       if (seenIds.has(r.id)) errors.push(`Identifiant de partant dupliqué : ${r.id}.`);
       seenIds.add(r.id);
       if (r.status === 'unknown') warnings.push(`${label} ${r.name} : statut partant/non-partant à confirmer.`);
-      if (r.odds.status === 'stale') warnings.push(`${label} ${r.name} : cote périmée.`);
-      if (r.odds.value != null && r.odds.value <= 0) errors.push(`${label} ${r.name} : cote invalide.`);
+      if (r.odds.status === 'stale' || r.pmuOdds.status === 'stale' || r.parisTurfOdds.status === 'stale' || r.tierceMagazineOdds.status === 'stale') warnings.push(`${label} ${r.name} : une cote est périmée.`);
+      if (r.odds.value != null && r.odds.value <= 0) errors.push(`${label} ${r.name} : cote historique invalide.`);
+      if (r.pmuOdds.value != null && r.pmuOdds.value <= 0) errors.push(`${label} ${r.name} : cote PMU invalide.`);
     });
     const active = race.runners.filter(r => r.status !== 'non_runner');
     const min = options.minimumRunners ?? 3;
@@ -139,7 +140,7 @@
   }
 
   function summarizeSources(race) {
-    const fields = ['jockey','trainer','draw','weightKg','handicapValue','odds','recentForm','distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability'];
+    const fields = ['jockey','trainer','draw','weightKg','handicapValue','odds','pmuOdds','parisTurfOdds','tierceMagazineOdds','recentForm','distanceSuitability','trackSuitability','groundSuitability','disciplineSuitability'];
     const counts = Object.fromEntries([...STATUSES].map(s => [s, 0]));
     race.runners.forEach(r => fields.forEach(k => { const s = r[k]?.status; if (counts[s] != null) counts[s]++; }));
     const urls = unique(race.runners.flatMap(r => fields.map(k => r[k]?.sourceUrl).filter(Boolean)));
