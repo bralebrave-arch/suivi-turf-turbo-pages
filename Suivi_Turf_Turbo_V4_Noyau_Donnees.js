@@ -13,7 +13,7 @@
   const STATUSES = new Set(['verified', 'corroborated', 'unverified', 'missing', 'conflicting', 'stale']);
   const DISCIPLINES = new Set(['plat', 'trot_attele', 'trot_monte', 'haies', 'steeple', 'cross', 'autre']);
   const asText = v => v == null ? '' : String(v).trim();
-  const asNumber = v => v === '' || v == null || !Number.isFinite(Number(v)) ? null : Number(v);
+  const asNumber = v => { if (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) v = v.value; return v === '' || v == null || !Number.isFinite(Number(v)) ? null : Number(v); };
   const unique = a => [...new Set(a)];
   const nowIso = () => new Date().toISOString();
   const safeUrl = value => {
@@ -22,6 +22,13 @@
   };
 
   function field(value, source = {}) {
+    // Accepte aussi un champ déjà normalisé {value, status, source, ...}.
+    // Sans cette compatibilité, chaque changement de statut ré-emballait
+    // l'objet entier comme valeur et faisait disparaître les données du PDF.
+    if (value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'value')) {
+      source = { ...value, ...(source || {}) };
+      value = value.value;
+    }
     const status = STATUSES.has(source.status) ? source.status : (value == null || value === '' ? 'missing' : 'unverified');
     return {
       value: value == null || value === '' ? null : value,
@@ -33,10 +40,18 @@
     };
   }
 
+  function numberField(value, source = {}) {
+    const existing = value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'value') ? value : null;
+    const metadata = existing ? { ...existing, ...(source || {}) } : source;
+    return field(asNumber(existing ? existing.value : value), metadata);
+  }
+
   function normalizeRunner(input = {}, defaults = {}) {
     const num = asNumber(input.number ?? input.numero);
     const name = asText(input.name ?? input.nom);
-    const recent = Array.isArray(input.recentForm ?? input.forme) ? (input.recentForm ?? input.forme).map(x => asText(x)).filter(Boolean).slice(0, 12) : [];
+    const recentInput = input.recentForm ?? input.forme;
+    const recentValue = recentInput && typeof recentInput === 'object' && Object.prototype.hasOwnProperty.call(recentInput, 'value') ? recentInput.value : recentInput;
+    const recent = Array.isArray(recentValue) ? recentValue.map(x => asText(x)).filter(Boolean).slice(0, 12) : [];
     const source = input.provenance || {};
     const runner = {
       id: asText(input.id) || `runner-${num ?? 'x'}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
@@ -45,20 +60,20 @@
       status: ['runner', 'non_runner', 'unknown'].includes(input.status) ? input.status : 'unknown',
       jockey: field(input.jockey, source.jockey),
       trainer: field(input.trainer, source.trainer),
-      draw: field(asNumber(input.draw), source.draw),
-      weightKg: field(asNumber(input.weightKg), source.weightKg),
-      handicapValue: field(asNumber(input.handicapValue), source.handicapValue),
-      odds: field(asNumber(input.odds), source.odds),
-      pmuOdds: field(asNumber(input.pmuOdds), source.pmuOdds),
+      draw: numberField(input.draw, source.draw),
+      weightKg: numberField(input.weightKg, source.weightKg),
+      handicapValue: numberField(input.handicapValue, source.handicapValue),
+      odds: numberField(input.odds, source.odds),
+      pmuOdds: numberField(input.pmuOdds, source.pmuOdds),
       parisTurfOdds: field(input.parisTurfOdds ?? null, source.parisTurfOdds),
       tierceMagazineOdds: field(input.tierceMagazineOdds ?? null, source.tierceMagazineOdds),
-      recentForm: field(recent.length ? recent : null, source.recentForm),
+      recentForm: field(recentInput && typeof recentInput === 'object' && Object.prototype.hasOwnProperty.call(recentInput, 'value') ? recentInput : (recent.length ? recent : null), source.recentForm),
       distanceSuitability: field(input.distanceSuitability ?? null, source.distanceSuitability),
       trackSuitability: field(input.trackSuitability ?? null, source.trackSuitability),
       groundSuitability: field(input.groundSuitability ?? null, source.groundSuitability),
       disciplineSuitability: field(input.disciplineSuitability ?? null, source.disciplineSuitability),
-      valueSuitability: field(asNumber(input.valueSuitability), source.valueSuitability),
-      scenarioSuitability: field(asNumber(input.scenarioSuitability), source.scenarioSuitability),
+      valueSuitability: numberField(input.valueSuitability, source.valueSuitability),
+      scenarioSuitability: numberField(input.scenarioSuitability, source.scenarioSuitability),
       historicalPerformances: Array.isArray(input.historicalPerformances) ? input.historicalPerformances.slice(0, 30).map(p => ({
         date: asText(p?.date), discipline: asText(p?.discipline), distanceM: asNumber(p?.distanceM),
         track: asText(p?.track), ground: asText(p?.ground), surface: asText(p?.surface),
