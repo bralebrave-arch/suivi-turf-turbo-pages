@@ -40,6 +40,12 @@
     };
   }
 
+  function numberField(value, source = {}) {
+    const existing = value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'value') ? value : null;
+    const metadata = existing ? { ...existing, ...(source || {}) } : source;
+    return field(asNumber(existing ? existing.value : value), metadata);
+  }
+
   function normalizeRunner(input = {}, defaults = {}) {
     const num = asNumber(input.number ?? input.numero);
     const name = asText(input.name ?? input.nom);
@@ -54,11 +60,11 @@
       status: ['runner', 'non_runner', 'unknown'].includes(input.status) ? input.status : 'unknown',
       jockey: field(input.jockey, source.jockey),
       trainer: field(input.trainer, source.trainer),
-      draw: field(asNumber(input.draw), source.draw),
-      weightKg: field(asNumber(input.weightKg), source.weightKg),
-      handicapValue: field(asNumber(input.handicapValue), source.handicapValue),
-      odds: field(asNumber(input.odds), source.odds),
-      pmuOdds: field(asNumber(input.pmuOdds), source.pmuOdds),
+      draw: numberField(input.draw, source.draw),
+      weightKg: numberField(input.weightKg, source.weightKg),
+      handicapValue: numberField(input.handicapValue, source.handicapValue),
+      odds: numberField(input.odds, source.odds),
+      pmuOdds: numberField(input.pmuOdds, source.pmuOdds),
       parisTurfOdds: field(input.parisTurfOdds ?? null, source.parisTurfOdds),
       tierceMagazineOdds: field(input.tierceMagazineOdds ?? null, source.tierceMagazineOdds),
       recentForm: field(recentInput && typeof recentInput === 'object' && Object.prototype.hasOwnProperty.call(recentInput, 'value') ? recentInput : (recent.length ? recent : null), source.recentForm),
@@ -66,8 +72,8 @@
       trackSuitability: field(input.trackSuitability ?? null, source.trackSuitability),
       groundSuitability: field(input.groundSuitability ?? null, source.groundSuitability),
       disciplineSuitability: field(input.disciplineSuitability ?? null, source.disciplineSuitability),
-      valueSuitability: field(asNumber(input.valueSuitability), source.valueSuitability),
-      scenarioSuitability: field(asNumber(input.scenarioSuitability), source.scenarioSuitability),
+      valueSuitability: numberField(input.valueSuitability, source.valueSuitability),
+      scenarioSuitability: numberField(input.scenarioSuitability, source.scenarioSuitability),
       historicalPerformances: Array.isArray(input.historicalPerformances) ? input.historicalPerformances.slice(0, 30).map(p => ({
         date: asText(p?.date), discipline: asText(p?.discipline), distanceM: asNumber(p?.distanceM),
         track: asText(p?.track), ground: asText(p?.ground), surface: asText(p?.surface),
