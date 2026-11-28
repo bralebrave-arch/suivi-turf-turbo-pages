@@ -45,7 +45,7 @@ function analyze(race,statsResult,aptitudeByRunner={}){
  const base=new Map(statsResult.ranked.map(x=>[x.id,x]));
  const reports=ROLES.map(role=>{
   const ranking=active.map(r=>scoreOne(r,base.get(r.id),aptitudeByRunner[r.id],null,role)).filter(x=>x.score!==null).sort((a,b)=>b.score-a.score);
-  return {id:role.id,name:role.name,description:role.description,ranking,top5:ranking.slice(0,5).map(x=>x.number),top7:ranking.slice(0,7).map(x=>x.number),limitations:ranking.length<active.length?'${active.length-ranking.length} partant(s) sans score exploitable.':'Certaines dimensions peuvent rester absentes.',kind:'perspective_locale_deterministe'};
+  return {id:role.id,name:role.name,description:role.description,ranking,top5:ranking.slice(0,5).map(x=>x.number),top7:ranking.slice(0,7).map(x=>x.number),limitations:ranking.length<active.length?'Certains partants ne disposent pas de score exploitable.':'Certaines dimensions peuvent rester absentes.',kind:'perspective_locale_deterministe'};
  });
  const rankMaps=reports.map(rep=>new Map(rep.ranking.map((x,i)=>[x.id,i+1])));
  const consensus=active.map(r=>{
