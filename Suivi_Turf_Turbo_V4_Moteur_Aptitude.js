@@ -1,4 +1,4 @@
-/* Suivi Turf Turbo V4 — moteur d'aptitude contextuelle v0.1.0
+/* Suivi Turf Turbo V4 — moteur d'aptitude contextuelle v0.2.0
  * Estimation descriptive à partir de résultats historiques fournis et sourcés.
  * Ne collecte aucune donnée et ne transforme pas l'aptitude en probabilité de victoire.
  */
@@ -23,22 +23,23 @@ function comparePerformance(p,race){
  if(norm(p.discipline)!==norm(race.discipline))return null;
  if(target&&Math.abs(d-target)/target>0.15)return null;
  const distanceFit=target?clamp(100-(Math.abs(d-target)/target)*500):null;
- const trackKnown=!!race.track, trackMatch=trackKnown&&norm(p.track)===norm(race.track);
- const groundKnown=!!(race.ground&&race.ground.value), groundMatch=groundKnown&&norm(p.ground)===norm(race.ground.value);
- const surfaceKnown=!!(race.surface&&race.surface.value), surfaceMatch=surfaceKnown&&norm(p.surface)===norm(race.surface.value);
+ const trackKnown=!!race.track, trackMatch=trackKnown&&p.track?norm(p.track)===norm(race.track):null;
+ const groundKnown=!!(race.ground&&race.ground.value), groundMatch=groundKnown&&p.ground?norm(p.ground)===norm(race.ground.value):null;
+ const surfaceKnown=!!(race.surface&&race.surface.value), surfaceMatch=surfaceKnown&&p.surface?norm(p.surface)===norm(race.surface.value):null;
  const placing=num(p.placing), field=num(p.fieldSize);
  const resultScore=100*(field-placing)/(field-1);
  const ageDays=Math.max(0,(Date.parse(race.date)-Date.parse(p.date))/86400000);
  const recency=Math.exp(-ageDays/730);
  let relevance=.45;
- if(trackKnown)relevance+=trackMatch?.20:0;
+ if(trackKnown&&trackMatch===true)relevance+=.20;
  if(target)relevance+=.20*(distanceFit/100);
- if(groundKnown)relevance+=groundMatch?.10:0;
- if(surfaceKnown)relevance+=surfaceMatch?.05:0;
+ if(groundKnown&&groundMatch===true)relevance+=.10;
+ if(surfaceKnown&&surfaceMatch===true)relevance+=.05;
  relevance*=.75+.25*recency;
- return {date:p.date,track:p.track||null,distanceM:d,ground:p.ground||null,placing,fieldSize:field,resultScore:Math.round(resultScore*10)/10,relevance:Math.round(relevance*1000)/1000,trackMatch,distanceFit:distanceFit===null?null:Math.round(distanceFit),groundMatch,surfaceMatch,sourceStatus:p.sourceStatus,source:p.source||null,sourceUrl:p.sourceUrl||null};
+ return {date:p.date,track:p.track||null,distanceM:d,ground:p.ground||null,surface:p.surface||null,placing,fieldSize:field,resultScore:Math.round(resultScore*10)/10,relevance:Math.round(relevance*1000)/1000,trackMatch,distanceFit:distanceFit===null?null:Math.round(distanceFit),groundMatch,surfaceMatch,sourceStatus:p.sourceStatus,source:p.source||null,sourceUrl:p.sourceUrl||null};
 }
 function summarize(values){const xs=values.filter(v=>v!==null&&v!==undefined);return xs.length?Math.round(xs.reduce((a,b)=>a+b,0)/xs.length):null;}
+function matchRate(compared,key){const values=compared.map(p=>p[key]).filter(v=>typeof v==='boolean');return values.length?Math.round(100*values.filter(Boolean).length/values.length):null;}
 function analyzeAptitude(race,performances=[]){
  if(!race||!Array.isArray(performances))throw new Error('Course et historique de performances requis.');
  const reasons=[];
@@ -57,7 +58,12 @@ function analyzeAptitude(race,performances=[]){
  const sourceQuality=count?compared.filter(p=>p.sourceStatus==='verified').length/count:0;
  const sampleFactor=Math.min(1,count/5);
  const confidence=score===null?0:Math.round(100*sampleFactor*(.6+.4*sourceQuality));
- return {score,classification,confidence,sampleSize:count,eligibleHistoryCount:eligible.length,dimensions:{discipline:race.discipline,distanceM:race.distanceM,track:race.track||null,ground:race.ground?.value??null,surface:race.surface?.value??null,trackMatchRate:count&&race.track?Math.round(100*compared.filter(p=>p.trackMatch).length/count):null,meanDistanceFit:summarize(compared.map(p=>p.distanceFit)),groundMatchRate:count&&race.ground?.value?Math.round(100*compared.filter(p=>p.groundMatch).length/count):null},reasons,performances:compared,warning:'Indice descriptif exploratoire fondé sur les performances historiques disponibles. Ce score n’est ni une probabilité de victoire ni une garantie de réussite. Les performances non vérifiées, futures, invalides ou non comparables sont exclues.'};
+ const trackMatchRate=race.track?matchRate(compared,'trackMatch'):null;
+ const groundMatchRate=race.ground?.value?matchRate(compared,'groundMatch'):null;
+ const surfaceMatchRate=race.surface?.value?matchRate(compared,'surfaceMatch'):null;
+ const conditionParts=[{value:groundMatchRate,weight:.45},{value:surfaceMatchRate,weight:.35},{value:trackMatchRate,weight:.20}].filter(x=>x.value!==null);
+ const conditionsScore=conditionParts.length?Math.round(conditionParts.reduce((s,x)=>s+x.value*x.weight,0)/conditionParts.reduce((s,x)=>s+x.weight,0)):null;
+ return {score,classification,confidence,sampleSize:count,eligibleHistoryCount:eligible.length,dimensions:{discipline:race.discipline,distanceM:race.distanceM,track:race.track||null,ground:race.ground?.value??null,surface:race.surface?.value??null,trackMatchRate,meanDistanceFit:summarize(compared.map(p=>p.distanceFit)),groundMatchRate,surfaceMatchRate,conditionsScore,conditionsSampleSize:conditionParts.length},reasons,performances:compared,warning:'Indice descriptif exploratoire fondé sur les performances historiques disponibles. Ce score n’est ni une probabilité de victoire ni une garantie de réussite. Les performances non vérifiées, futures, invalides ou non comparables sont exclues. Les taux de correspondance ignorent les historiques où la dimension concernée n’est pas renseignée.'};
 }
-return {version:'0.1.0',analyzeAptitude,validRecord};
+return {version:'0.2.0',analyzeAptitude,validRecord};
 });
