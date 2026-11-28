@@ -61,7 +61,7 @@ function analyze(race,statsResult,aptitudeByRunner={}){
  const factorCoverage={
   formeRecente:active.filter(r=>base.get(r.id)?.form!==null&&base.get(r.id)?.form!==undefined).length,
   aptitude:active.filter(r=>aptitudeByRunner[r.id]?.score!==null&&aptitudeByRunner[r.id]?.score!==undefined).length,
-  conditions:active.filter(r=>{const a=aptitudeByRunner[r.id];return a&&(a.dimensions?.groundMatchRate!==null&&a.dimensions?.groundMatchRate!==undefined||a.dimensions?.trackMatchRate!==null&&a.dimensions?.trackMatchRate!==undefined);}).length,
+  conditions:active.filter(r=>{const a=aptitudeByRunner[r.id];return a&&(a.dimensions?.groundMatchRate!==null&&a.dimensions?.groundMatchRate!==undefined||a.dimensions?.surfaceMatchRate!==null&&a.dimensions?.surfaceMatchRate!==undefined||a.dimensions?.trackMatchRate!==null&&a.dimensions?.trackMatchRate!==undefined);}).length,
   entourageDocumente:active.filter(r=>!!(value(r,'jockey')||value(r,'trainer'))).length,
   valeurHandicap:active.filter(r=>value(r,'valueSuitability')!==null&&value(r,'valueSuitability')!==undefined).length,
   scenarioCourse:active.filter(r=>value(r,'scenarioSuitability')!==null&&value(r,'scenarioSuitability')!==undefined).length
